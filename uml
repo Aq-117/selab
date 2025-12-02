@@ -1,0 +1,13 @@
+**“Give me PlantUML code with ONLY valid syntax.
+Do NOT include unsupported features like custom shapes, wrong component syntax, or missing @startuml/@enduml.
+Use simple elements only:
+
+For Use Case: actors + use cases + include/extend
+
+For Sequence: lifelines + solid arrows only
+
+For Class: class boxes + attributes + methods + associations
+
+For Component: [Component] blocks only
+Make sure the code runs without any syntax errors in plantuml.com/plantuml.
+Now generate a (Use Case / Class / Sequence / Component) diagram for the following scenario:”**

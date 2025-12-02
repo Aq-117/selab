@@ -1,0 +1,11 @@
+cl1p.net/srs369
+cl1p.net/uml369
+cl1p.net/jenkins369
+cl1p.net/mjava369
+cl1p.net/mweb369
+cl1p.net/mini369
+cl1p.net/nag369
+cl1p.net/script369
+cl1p.net/cli369
+cl1p.net/doc369
+cl1p.net/aws999
