@@ -1,0 +1,457 @@
+my_git_notes
+
+git init: create a new empty git repo
+git creates a hidden .git folder which stores history
+
+git clone <url>: copies existing repo.
+git clone -b <branch> → clone a specific branch
+git clone --depth 1 → shallow clone (faster)
+
+git status
+Shows:
+Modified files
+Staged files
+Untracked files
+example:
+Untracked files:
+  index.html
+Changes not staged:
+  modified: main.py
+example2:
+No commits yet
+nothing to commit
+
+create files: echo "<h1>Hello</h1>" > index.html
+echo "console.log('Hello');" > script.js
+
+git add: Moves changes → staging area.
+git add <file>: add specific file
+git add .: add all files/changes
+git add -A: add all changes including deletions
+git add -p: add specific lines only(interactive)
+
+git commit -m "message": saves snapshot of the project
+git commit -am "message": add + commit for modified files only
+git commit --amend: edit last commit
+
+git restore <filename or .>: wont remove commit, just the modified (not yet added) changes are undoed.
+git restore --staged <filename> : undo from staged to modified.
+reset --soft : changes are staged as they previously(the target commit) were. ( no need to git add, direct commit)
+reset --mixed : changes will be unstaged but still remain as modified. ( need git add, then commit)
+reset --hard : commit is gone, changes are also gone.
+
+
+get out of forgetting message:
+:q! enter.
+
+git mv <curr_file> <target_file> : Moves or renames a file AND stages that change automatically
+Because if you rename files manually (e.g., using File Explorer or mv command), Git sees it as:
+Deleted file
+New file
+But with git mv, Git immediately stages the rename properly.
+
+example: 
+$ git mv app.js script.js
+$ git status
+
+alternative: (manual rename)
+$ mv app.js script.js
+$ git add app.js script.js
+
+git rm <file_name>:
+Deletes the file from working directory AND stages the deletion
+$ git rm index.html
+$ git commit -m "Remove index.html"
+
+git rm --cached <file_name>: Remove file only from Git but keep locally ( accidently committed config file, env file etc) 
+
+git rm -r assets/ : remove directory  here assets is a directory
+
+git clean: Deletes ALL untracked files from working dir
+This is permanent. Git cannot restore untracked files.
+
+git clean -n: to see what will be deleted.
+example output : would remove index.html
+
+git clean -f: to confirm
+git clean -fd: remove directories
+git clean -Xf remove ignored files like node_modules
+git clean -sf: remove all(ignored + untracked)
+
+.gitignore: Specifies files/folders Git should never track or show as untracked.
+Why it's important
+To avoid committing secrets (passwords, API keys)
+To keep build artifacts and logs out of repo
+To avoid huge folders like node_modules/
+
+example:
+# logs
+*.log
+
+# build folders
+dist/
+build/
+
+# environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+git status --ignored: show files ignored by git
+note: If a file is already committed, adding it to .gitignore DOES NOT remove it.
+to remove it: git rm --cached <filename>
+
+git log: see history of commits
+git log --oneline: pretty one-line format
+git log --graph --decorate -all: shows branches visually.
+
+git show <commit-id>: Shows WHAT changed in a specific commit in full detail.
+example:
+You’ll see the patch (diff):
+rename from app.js
+rename to script.js
+
+Or if content changed:
++ console.log("Welcome");
+- console.log("Hello");
+
+
+git diff: Shows differences between:
+working directory ↔ staging area
+staging ↔ last commit
+two commits
+two branches
+
+git diff: compare working dir vs last commit
+git diff --cached: compare staged vs last commit
+git diff commit1 commit2: compare 2 commits
+git diff main feature-login: compare 2 branches
+
+git reflog: records EVERYTHING you did locally:
+commits
+resets
+checkouts
+rebases
+hard resets
+Even if your branch is messed up, reflog helps you recover lost commits.
+
+ex:
+git reflog
+e2b92e2 (HEAD -> main) HEAD@{0}: reset: moving to head~1
+0d7c12c HEAD@{1}: commit: try 2
+e2b92e2 (HEAD -> main) HEAD@{2}: commit: try 1
+0cab94e HEAD@{3}: reset: moving to head~1
+43e938f HEAD@{4}: revert: Revert "trying revert"
+0cab94e HEAD@{5}: commit: trying revert
+41ab059 HEAD@{6}: reset: moving to head~1
+d4c29d6 HEAD@{7}: commit: commit 5
+
+Restore a commit you thought was lost:
+If you did a bad reset:
+$ git reset --hard HEAD~3
+Lost your progress?
+Use reflog:
+$ git reset --hard HEAD@{1}
+You just restored your earlier state.
+
+
+git branch: shows all branches
+branch is a pointer to a commit.
+git branch <branch_name>: create branch(wont move to created branch)
+ex:
+git branch feature-login
+* main
+  feature-login
+
+git checkout <branch_name>: move to the specified branch
+git switch <branch_name>: similar to above but newer
+git switch -c <branch_name>: create + switch
+git checkout -b <branch_name>: similar to above
+git checkout is old.
+
+git merge <branch_name>: will merge branch_name to current branch.
+
+fast-forward merge:   ex: main -----> feature-login
+A fast-forward merge in Git is a simple merge that occurs when the receiving branch has no new commits since the branch being merged was created. Instead of creating a new merge commit, Git simply moves the receiving branch's pointer forward to match the latest commit of the source branch, maintaining a linear history. This is the default behavior of git merge if a fast-forward is possible. 
+
+How it works
+Scenario: You have a main branch and you create a feature branch from it. You add commits to feature (e.g., commits D and E), but no new commits are made to main (which still points to commit C).
+Action: When you are on the main branch and run git merge feature, Git sees there's a linear path from main to feature.
+Result: Git moves the main branch pointer directly from C to E, creating a straight line of commits. No new merge commit is created, and the history remains simple and linear. 
+
+merge commit: a type of merge. Happens when both branches diverge.
+     A---B (main)
+      \  
+       C---D (feature)
+Merge produces:
+     A---B-------M
+      \         /
+       C-------D
+
+merge conflict: when 2 branches modify same lines.
+conflict markers:
+<<<<<<< HEAD
+<h1>Hello World from MAIN</h1>
+=======
+<h1>Hello from FEATURE-LOGIN</h1>
+>>>>>>> feature-login
+
+Meaning:
+Everything between <<<<<<< HEAD is from current branch (main)
+Everything between ======= is the common separator
+Everything between >>>>>>> feature-login is from the branch you're merging (feature-login)
+
+resolve the conflict manually then git add and commit.
+
+MERGE (history diverges)
+A---B--------M (main)
+     \      /
+      C----D (feature)
+
+REBASE (linear history)
+A---B---C'---D' (feature)
+
+MERGE fast forward (history diverges)
+A---B (main)
+     \
+      C----D (feature) now main is at d.
+
+Rebase makes history clean, but rewrites commit hashes.
+
+git merge --no-ff: do it without fastforward.
+so git merge auto uses fastforward? yes
+git merge --ff-only: Forces a fast-forward merge and will fail if it's not possible.
+git merge --no-ff: Forces a merge commit to be created, even if a fast-forward merge would be possible.
+
+✔️ Example
+Start on feature branch:
+$ git switch feature-login
+
+Rebase onto main:
+$ git rebase main
+If no conflicts → done.
+If conflicts → you fix them, then:
+
+$ git add script.js
+$ git rebase --continue
+
+To stop rebase:
+$ git rebase --abort
+
+⭐ Merge vs Rebase — When to Use What
+Use merge when	Use rebase when
+Working with team	Working alone
+Want full history	Want clean history
+Don’t want rewrite history	Fine rewriting commits
+Public branch	Local branch
+
+Golden rule:
+➡️ Never rebase public/shared branches.
+
+Git rebase does not permanently delete commits in a way that makes them unrecoverable, at least not immediately. While it replaces the original commits with new ones (with different commit SHAs) when rewriting history, the original commits still exist in Git's internal object database for a period of time.
+
+git cherry-pick: Used when you want one commit, not the entire branch.
+
+Example Scenario
+Feature branch has 10 commits.
+But you want only commit abc123 in main.
+Do:
+$ git switch main
+$ git cherry-pick abc123
+
+git stash — Save Work Without Committing
+You’re in the middle of writing code and must switch branches.
+
+But code is incomplete.
+Commit? ❌ (not ready)
+Discard? ❌ (you need it)
+Use stash.
+git stash: save changes
+git stash apply: apply he changes
+git stash list: list stashes
+git stash pop: saves change and removes stash from stash list
+git stash push: similar to git stash. can use arguments using push --
+ex: git stash push -"My stash message"
+
+git stash branch <b_name> save changes in a new branch
+
+
+A remote is just another copy of your repo stored on a server like GitHub, GitLab, Bitbucket, etc.
+We usually name it:
+origin (default remote)
+upstream (if repo was forked)
+
+Origin
+Definition: A shorthand name for the remote repository you cloned from or initially set up.
+In practice: When you clone a repository, Git automatically creates a remote named origin pointing to the source of the clone, which is typically your fork on a platform like GitHub.
+
+Upstream
+Definition: A name given to a remote repository that is not your own fork, but the original source of the project.
+In practice: You manually add upstream to track the original repository, allowing you to fetch and merge updates from it.
+
+git remote -v: list remotes
+ex:
+git remote -v
+origin  https://github.com/Aq-117/practice.git (fetch)
+origin  https://github.com/Aq-117/practice.git (push)
+
+add git repo: $ git remote add origin https://github.com/start/myapp.git
+
+git push -u origin main: Upload your commits to GitHub
+-u (or --set-upstream)
+This is a flag or option that stands for "set upstream."
+It does two important things:
+It configures your current local main branch to automatically track the remote origin/main branch.
+For all future pushes and pulls from this specific local branch, you will not need to specify the remote name (origin) or the branch name (main) in the command (e.g., you can simply use git push or git pull).
+This flag is typically only needed the first time you push a new branch. 
+origin
+This is a shorthand alias (a nickname) for the URL of the remote repository (e.g., on GitHub, GitLab, or Bitbucket) that your local repository is connected to.
+By default, when you clone a repository, the name origin is assigned to the repository you cloned from. You can view your configured remotes using the command git remote -v. 
+main
+This is the name of the local branch you are pushing. Git will push the commits from your local main branch up to the remote repository.
+
+git pull: get/fetch updates from remote repo
+git clone <url>: download a repo
+it will:
+✔️ makes a new folder
+✔️ sets origin
+✔️ checks out default branch
+
+git branch -a: -a(short for --all) lists local and remote branches
+git branch will only list local branches
+Local branches are the branches you have physically checked out and worked on within your own working directory.
+Remote branches are references to the state of branches on a shared remote repository. You cannot directly work on a remote-tracking branch; you must first create a local branch that tracks it.
+git branch -r: command can also be used to specifically list only the remote-tracking branches. 
+ex of git branch -a:
+* main
+  remotes/origin/main
+  remotes/origin/feature-login
+main	your local branch
+origin/main	remote branch on GitHub
+
+git fetch: download changes without merging
+| Command     | Does it merge automatically? |
+| ----------- | ---------------------------- |
+| `git fetch` | ❌ No                         |
+| `git pull`  | ✔️ Yes (`fetch` + `merge`)   |
+
+git pull: fetch + merge
+
+git pull --ff-only: safe fast-forward only
+It will only succeed if your local branch has no unique commits compared to the remote branch, meaning your local branch can simply be updated to point to the latest commit on the remote.
+
+git pull --rebase
+Why?
+Because pulling normally creates extra merge commits.
+Rebase makes your history clean and linear.
+
+📌 Scenario
+You rebased local commits.
+This rewrites history → commit hashes changed.
+GitHub thinks you’re trying to overwrite history.
+
+So push fails:
+
+$ git push
+rejected, non-fast-forward
+
+You must force it.
+
+⚠️ Danger of git push --force
+Deletes remote commits.
+Should almost NEVER be used on shared branches.
+
+✔️ SAFE ALTERNATIVE: --force-with-lease
+$ git push --force-with-lease
+
+Why safer?
+It checks if no one else pushed after you
+Prevents accidental destruction of others’ work
+
+When histories diverge (Very common problem)
+You push → works.
+Someone else pushes → you make more commits → push again → error:
+rejected: non-fast-forward
+
+Fix:
+$ git pull --rebase
+Resolve conflicts
+Then:
+$ git push
+
+git remote rename origin <oldorigin_name>: rename a remote
+git remote remove origin: remove remote
+
+git remote set-url origin https://github.com/start/mynewrepo.git: change GitHub url
+
+Git Tags — Marking Versions (v1.0.0, etc.)
+Tags are like permanent bookmarks in history.
+Used for releases.
+Tags act as static pointers to a specific commit, providing a stable reference that does not move with new commits, unlike branches.
+In Continuous Integration/Continuous Deployment (CI/CD) pipelines, tags can trigger specific workflows or deployments.
+
+git tag v1.0: create lightweight tag, this labels the current commit as "v1.0"
+
+Create annotated tag (RECOMMENDED):
+$ git tag -a v1.0 -m "First release"
+
+Annotated tags store:
+author
+date
+message
+
+git tag: lists tags
+git tag -a v0.1 d123abc -m "pre-release": tag a specific commit
+git push origin v1.0: push tags to GitHub
+git does not push tags automatically
+git push --tags: push all tages
+
+A Git fork is an independent copy of a Git repository, typically hosted on a platform like GitHub or GitLab, that is placed under your own account or namespace. It essentially creates a personal version of a project that you can modify without directly affecting the original "upstream" repository.
+
+Upstream Connection: While a fork is independent, it maintains a connection to the original "upstream" repository. This allows you to pull in updates from the original project to keep your fork synchronized, and to submit your changes back to the upstream through pull requests.
+
+Creating and applying Git patches allows for sharing and incorporating code changes without requiring a full repository clone or direct push access.
+Creating a Git Patch:
+from uncommitted changes.
+Code
+
+    git diff > my_changes.patch
+This command generates a patch file named my_changes.patch containing all uncommitted changes in your working directory. From Staged Changes.
+Code
+
+    git diff --cached > my_staged_changes.patch
+This creates a patch file from changes that have been added to the staging area but not yet committed. From a Specific Commit.
+Code
+
+    git format-patch -1 <commit-hash>
+This generates a patch file for a single commit identified by its hash. From a Range of Commits.
+Code
+
+    git format-patch <start-commit>..<end-commit>
+This creates a patch file for all commits within the specified range (exclusive of start-commit, inclusive of end-commit). between two branches.
+Code
+
+    git diff branch1..branch2 > branch_diff.patch
+This generates a patch file containing the differences between branch1 and branch2.
+Applying a Git Patch:
+Applying a Patch File.
+Code
+
+    git apply my_changes.patch
+This command applies the changes from my_changes.patch to your current working directory. The changes are applied but not committed. 
+Applying and Committing a Patch (using git am):
+Code
+
+    git am my_changes.patch
+This command applies the patch and attempts to create a new commit with the original commit message and author information from the patch. This is often used for patches generated with git format-patch. Applying Multiple Patches.
+Code
+
+    git am *.patch
+This applies all patch files in the current directory.
+Important Considerations:
+Checking for Conflicts: Before applying, you can check if a patch will apply cleanly using git apply --check my_changes.patch.
+Resolving Conflicts: If conflicts occur during application, Git will notify you. You will need to manually resolve these conflicts and then continue the process (e.g., git am --continue or git add <conflicted-file> followed by a commit).
+Reverting a Patch: To revert a previously applied patch, use git apply -R my_changes.patch.
+Verbose Output: Use the --verbose flag with git apply or git am for detailed output during the application process. 
