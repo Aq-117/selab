@@ -134,3 +134,33 @@ Correct Pom.xml
     </pluginManagement>
   </build>
 </project>
+
+
+
+
+Your project is NOT a multi-module project yet.
+To create one, you need a parent project with modules.
+
+✔ Example parent pom.xml:
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.app</groupId>
+    <artifactId>parent-project</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>module-one</module>
+        <module>module-two</module>
+    </modules>
+</project>
+
+✔ Create modules:
+
+Inside parent folder:
+
+mvn archetype:generate -DartifactId=module-one -DgroupId=com.app
+mvn archetype:generate -DartifactId=module-two -DgroupId=com.app
+
+
+Then link them to the parent.

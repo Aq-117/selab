@@ -1,5 +1,9 @@
 my_git_notes
 
+git config --global --unset-all core.gitproxy
+    git config --global --unset user.name
+    git config --global --unset user.email
+    
 git init: create a new empty git repo
 git creates a hidden .git folder which stores history
 
